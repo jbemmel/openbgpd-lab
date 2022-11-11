@@ -1,0 +1,44 @@
+message: |
+  A Netlab version of the IXP demo lab, using Containerlab
+
+provider: clab
+
+module: [bgp]
+
+addressing:
+  lan:
+    ipv4: 192.168.0.0/20
+
+groups:
+  unprovisioned:
+    members: [openbgpd]
+
+nodes:
+  srlinux:
+    bgp.as: 65001
+    device: srlinux
+
+  ceos:
+    bgp.as: 65002
+    device: eos
+    clab:
+      image: ceos:latest
+
+  openbgpd:
+    bgp.as: 65003
+    device: frr # Must be a switch-type device to get BGP configs
+    clab:
+      image: quay.io/openbgpd/openbgpd:7.7
+      binds:
+      - "openbgpd.conf:/etc/bgpd/bgpd.conf"
+
+links:
+- openbgpd:
+  srlinux:
+  ceos:
+- srlinux:
+    ipv4: 8.8.8.1/24
+  type: stub
+- ceos:
+    ipv4: 8.8.4.2/24  # Cannot be /32
+  type: stub
